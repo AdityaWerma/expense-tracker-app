@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 final formatter = DateFormat.yMd();
 
 class NewExpense extends StatefulWidget {
-  const NewExpense({super.key});
+  const NewExpense({super.key, required this.onAddExpense});
+
+  final void Function(Expense expense) onAddExpense;
 
   @override
   State<NewExpense> createState() {
@@ -34,13 +36,37 @@ class _NewExpense extends State<NewExpense> {
     });
   }
 
-  void _submitExpenseData(){
+  void _submitExpenseData() {
     final enteredAmount = double.tryParse(_amountController.text);
-    final amountIsInvalid = enteredAmount == null || enteredAmount <=0;
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
 
-   if(_titleController.text.trim().isEmpty || amountIsInvalid || _selectedDate == null){
-
-   }
+    if (_titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Invalid Input'),
+          content: const Text('Please make sure your details are correct.'),
+          actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Close'))
+          ],
+        ),
+      );
+      return;
+    }
+    widget.onAddExpense(
+      Expense(
+        title: _titleController.text,
+        amount: enteredAmount,
+        date: _selectedDate!,
+        category: _selectedCategory,
+      ),
+    );
   }
 
   @override
@@ -92,7 +118,7 @@ class _NewExpense extends State<NewExpense> {
           Row(
             children: [
               DropdownButton(
-                value: _selectedCategory,
+                  value: _selectedCategory,
                   items: Category.values
                       .map((category) => DropdownMenuItem(
                             value: category,
@@ -102,7 +128,7 @@ class _NewExpense extends State<NewExpense> {
                           ))
                       .toList(),
                   onChanged: (value) {
-                    if (value == null){
+                    if (value == null) {
                       return;
                     }
                     setState(() {
